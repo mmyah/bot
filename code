@@ -1,0 +1,156 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class JustClass implements Runnable{
+    private boolean limit_speed;
+    private double d;
+
+    private JustClass(){
+        limit_speed = false;
+    }
+
+    public double coin(){
+        String vUrl = "http://206.189.100.68:3001/api/getdifficulty";
+        HttpURLConnection conVivo = null;
+        try {
+            conVivo = (HttpURLConnection) new URL(vUrl).openConnection();
+            conVivo.setRequestMethod("GET");
+            conVivo.connect();
+            StringBuilder sb = new StringBuilder();
+            if (HttpURLConnection.HTTP_OK == conVivo.getResponseCode()) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conVivo.getInputStream()));
+                String line;
+                while ((line = in.readLine()) != null) {
+                    d = Double.parseDouble(line);
+                    sb.append(d);
+                    System.out.println("Current difficulty is: " + d);
+                }
+            } else {
+                System.out.println("Failed connection " + conVivo.getResponseCode() + " ," + conVivo.getResponseMessage());
+            }
+        } catch (Throwable cause) {
+            cause.printStackTrace();
+        } finally {
+            if (conVivo != null) {
+                conVivo.disconnect();
+            }
+        }
+        return d;
+    }
+
+    public void myOrderInfo() throws IOException {
+
+        String orderInfo = "https://api.nicehash.com/api?method=orders.get&my&id=364250&key=0689208e-ba17-48f2-190a-df8ebae59f01&location=0&algo=8";
+
+           var url = new URL(orderInfo);
+           var conn = url.openConnection();
+           try (var in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+               in.lines().forEach(System.out::println);
+           } catch (IOException e) {
+               e.printStackTrace();
+           }
+
+    }
+
+
+    public void setOn() throws IOException {
+        if (d <= 6) {
+            String limitIncreaseUA = "https://api.nicehash.com/api?method=orders.set.limit&id=8&key=3583b1df-5e93-4ba0-96d7-7d621fe15a17&location=0&algo=0&order=1881&limit=1.0";
+
+            var url = new URL(limitIncreaseUA);
+            var conn = url.openConnection();
+            try (var in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                in.lines().forEach(System.out::println);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String limitIncreaseUS = "https://api.nicehash.com/api?method=orders.set.limit&id=8&key=3583b1df-5e93-4ba0-96d7-7d621fe15a17&location=0&algo=0&order=1881&limit=1.0";
+            var url1 = new URL(limitIncreaseUS);
+            var conn1 = url1.openConnection();
+            try (var in1 = new BufferedReader(new InputStreamReader(conn1.getInputStream()))) {
+                in1.lines().forEach(System.out::println);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            limit_speed = true;
+            System.out.println(limit_speed);}
+        }
+
+    public void setOff() throws IOException{
+        if (d > 6) {
+            String limitDecreaseUA = "https://api.nicehash.com/api?method=orders.set.limit&id=8&key=3583b1df-5e93-4ba0-96d7-7d621fe15a17&location=0&algo=0&order=1881&limit=1.0";
+            var url = new URL(limitDecreaseUA);
+            var conn = url.openConnection();
+            try (var in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                in.lines().forEach(System.out::println);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String limitDecreaseUS ="https://api.nicehash.com/api?method=orders.set.limit&id=8&key=3583b1df-5e93-4ba0-96d7-7d621fe15a17&location=0&algo=0&order=1881&limit=1.0";
+            var url2 = new URL(limitDecreaseUS);
+            var conn2 = url2.openConnection();
+            try (var in2 = new BufferedReader(new InputStreamReader(conn2.getInputStream()))) {
+                in2.lines().forEach(System.out::println);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        limit_speed = false;
+        System.out.println(limit_speed);
+    }
+
+    public boolean isOn(){
+        return limit_speed;
+    }
+
+    public void letProveIt(){
+        if (!isOn() && d <=2){
+            try {
+                setOn();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Increasing current limit to: 2.00.");
+        } else if (isOn() && d <=2){
+            System.out.println("Hey, limit is already on , time to relax.");
+        }else if (isOn() && d>2){
+            try {
+                setOff();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Now time, to set limit to: 0.01.");
+        }else if (!isOn() && d >2){
+            System.out.println("Relaaax, it is off now.");
+        }
+    }
+
+    public static void main(String[] args) {
+        Thread thread = new Thread(new JustClass());
+        thread.start();
+
+
+    }
+    @Override
+    public void run() {
+        JustClass justClass = new JustClass();
+        while (true){
+            justClass.coin();
+            /*
+            try {justClass.myOrderInfo();} catch (IOException e){e.printStackTrace();}
+             */
+
+            justClass.letProveIt();
+            System.out.println("Thread sleeps now!");
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
